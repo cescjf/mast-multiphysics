@@ -26,7 +26,7 @@
 
 
 extern "C" {
-    
+
     /*
      *  =====================================================================
      *  Purpose
@@ -126,8 +126,8 @@ extern "C" {
      *                have converged.
      *  =====================================================================
      */
-    extern int dgeev_(char*    jobvl,
-                      char*    jobvr,
+    extern void dgeev_(const char*    jobvl,
+                      const char*    jobvr,
                       int*     n,
                       double*  a,
                       int*     lda,
@@ -140,51 +140,51 @@ extern "C" {
                       double*  work,
                       int*     lwork,
                       int*     info);
-    
+
 }
 
 
 namespace MAST {
-    
-    
+
+
     class LAPACK_DGEEV{
-        
+
     public:
-        
+
         LAPACK_DGEEV():
         info_val(-1)
         { }
-        
+
         /*!
          *    computes the eigensolution for A x = \lambda I x. A & B will be
          *    overwritten
          */
         void compute(const RealMatrixX& A,
                      bool computeEigenvectors = true);
-        
+
         ComputationInfo info() const;
-        
+
         const RealMatrixX& A() const {
             libmesh_assert(info_val == 0);
             return this->_A;
         }
-        
-        
+
+
         const ComplexVectorX& eig_vals() const {
             libmesh_assert(info_val == 0);
             return this->W;
         }
-        
+
         const ComplexMatrixX& left_eigenvectors() const {
             libmesh_assert(info_val == 0);
             return this->VL;
         }
-        
+
         const ComplexMatrixX& right_eigenvectors() const {
             libmesh_assert(info_val == 0);
             return this->VR;
         }
-        
+
         /*!
          *    Scales the right eigenvector so that the inner product with respect
          *    to the B matrix is equal to an Identity matrix, i.e.
@@ -192,10 +192,10 @@ namespace MAST {
          */
         void scale_eigenvectors_to_identity_innerproduct() {
             libmesh_assert(info_val == 0);
-            
+
             // this product should be an identity matrix
             ComplexMatrixX r = this->VL.conjugate().transpose() * this->VR;
-            
+
             // scale the right eigenvectors by the inverse of the inner-product
             // diagonal
             Complex val;
@@ -205,33 +205,33 @@ namespace MAST {
                     this->VR.col(i) *= (1./val);
             }
         }
-        
+
         void print_inner_product(std::ostream& out) const {
             libmesh_assert(info_val == 0);
             ComplexMatrixX r;
             r = this->VL.conjugate().transpose() * _A * this->VR;
             out << "conj(VL)' * A * VR" << std::endl
             << r << std::endl;
-            
+
             r = this->VL.conjugate().transpose() * this->VR;
             out << "conj(VL)' * B * VR" << std::endl
             << r << std::endl;
-            
+
         }
-        
+
     protected:
-        
+
         RealMatrixX    _A;
-        
+
         ComplexMatrixX VL;
-        
+
         ComplexMatrixX VR;
-        
+
         ComplexVectorX W;
-        
+
         int info_val;
     };
-    
+
 }
 
 #endif // __mast__lapack_dgeev_interface_h__
