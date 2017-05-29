@@ -63,6 +63,7 @@ set (blas_lib_dir      "blas-lib-dir" CACHE STRING "Directory containing BLAS li
 separate_arguments (blas_lib_file)
 set (petsc_dir         "petsc-dir" CACHE STRING "Directory containing PETSc installation")
 set (slepc_dir         "slepc-dir" CACHE STRING "Directory containing PETSc installation")
+set (petsc_arch         "petsc-arch" CACHE STRING "Directory containing PETSc installation")
 set (CMAKE_Fortran_COMPILER "fortran-compiler" CACHE STRING "Fortran compiler")
 
 
@@ -73,17 +74,19 @@ include_directories (${PROJECT_SOURCE_DIR}/../src
                              ${eigen_include_dir}
 		             ${boost_include_dir})
 
+include_directories (${petsc_dir}/${petsc_arch}/include)
+include_directories (${slepc_dir}/$ENV{petsc_arch}/include)
 include_directories (SYSTEM ${mpi_include_dir})
 
 
 find_library (mesh_dbg mesh_dbg ${libmesh_dir}/lib)
 find_library (mesh_opt mesh_opt ${libmesh_dir}/lib)
 
-find_library (petsc_lib petsc ${petsc_dir}/lib)
-find_library (slepc_lib slepc ${slepc_dir}/lib)
+find_library (petsc_lib petsc ${petsc_dir}/lib ${petsc_dir}/${petsc_arch}/lib NO_CMAKE_FIND_ROOT_PATH)
+find_library (slepc_lib slepc ${slepc_dir}/lib ${slepc_dir}/${petsc_arch}/lib NO_CMAKE_FIND_ROOT_PATH)
 
-find_library (mpicxx_lib    mpi_cxx              ${mpi_lib_dir})
-find_library (mpi_lib       mpi                  ${mpi_lib_dir})
+find_library (mpicxx_lib    mpi_cxx              ${mpi_lib_dir} NO_DEFAULT_PATH NO_CMAKE_FIND_ROOT_PATH)
+find_library (mpi_lib       mpi                  ${mpi_lib_dir} NO_DEFAULT_PATH NO_CMAKE_FIND_ROOT_PATH)
 
 find_library (boost_unit_test_lib   ${boost_test_lib}    ${boost_lib_dir})
 
@@ -113,7 +116,7 @@ file (GLOB_RECURSE mast_source_files
       ${PROJECT_SOURCE_DIR}/../src/*.h)
 add_library (mast ${mast_source_files})
 
-target_link_libraries (mast  
+target_link_libraries (mast
 		               debug ${mesh_dbg}
 		               optimized ${mesh_opt}
 		               ${petsc_lib}
@@ -127,15 +130,17 @@ target_link_libraries (mast
 		               ${mpicxx_lib}
 		               ${mpi_lib})
 
-set_property (TARGET mast APPEND 
+set_property (TARGET mast APPEND
               PROPERTY INCLUDE_DIRECTORIES
 	          ${libmesh_dir}/include)
-set_property (TARGET mast APPEND 
+set_property (TARGET mast APPEND
 	          PROPERTY INCLUDE_DIRECTORIES
-	          ${petsc_dir}/include)
-set_property (TARGET mast APPEND 
+	          ${petsc_dir}/include
+              ${petsc_dir}/${petsc_arch}/include)
+set_property (TARGET mast APPEND
 	          PROPERTY INCLUDE_DIRECTORIES
-	          ${slepc_dir}/include)
+	          ${slepc_dir}/include
+              ${slepc_dir}/${petsc_arch}/include)
 
 ####################################################################
 #  tell cmake to link example driver with mast library
@@ -145,16 +150,19 @@ file (GLOB_RECURSE example_driver_source_files
       ${PROJECT_SOURCE_DIR}/../examples/*.h)
 add_executable (example_driver ${example_driver_source_files})
 
-target_link_libraries (example_driver   mast)
-set_property (TARGET example_driver APPEND 
+find_package (Threads REQUIRED)
+target_link_libraries (example_driver mast -lpthread ${CMAKE_THREAD_LIBS_INIT})
+set_property (TARGET example_driver APPEND
               PROPERTY INCLUDE_DIRECTORIES
 	          ${libmesh_dir}/include)
-set_property (TARGET example_driver APPEND 
+set_property (TARGET example_driver APPEND
               PROPERTY INCLUDE_DIRECTORIES
-              ${petsc_dir}/include)
-set_property (TARGET example_driver APPEND 
+              ${petsc_dir}/include
+              ${petsc_dir}/${petsc_arch}/include)
+set_property (TARGET example_driver APPEND
               PROPERTY INCLUDE_DIRECTORIES
-              ${slepc_dir}/include)
+              ${slepc_dir}/include
+              ${slepc_dir}/${petsc_arch}/include)
 
 ####################################################################
 #  tell cmake to link the tests
@@ -170,15 +178,15 @@ add_executable (mast_tests ${mast_test_source_files})
 target_link_libraries (mast_tests
                        mast
 			           ${boost_unit_test_lib})
-set_property (TARGET mast_tests APPEND 
+set_property (TARGET mast_tests APPEND
 	          PROPERTY INCLUDE_DIRECTORIES
 	          ${libmesh_dir}/include
 	          ${})
-set_property (TARGET mast_tests APPEND 
+set_property (TARGET mast_tests APPEND
               PROPERTY INCLUDE_DIRECTORIES
-              ${petsc_dir}/include)
-set_property (TARGET mast_tests APPEND 
+              ${petsc_dir}/include
+              ${petsc_dir}/${petsc_arch}/include)
+set_property (TARGET mast_tests APPEND
               PROPERTY INCLUDE_DIRECTORIES
-              ${slepc_dir}/include)
-
-
+              ${slepc_dir}/include
+              ${slepc_dir}/${petsc_arch}/include)
