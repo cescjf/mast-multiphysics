@@ -65,6 +65,7 @@ set (petsc_dir         "petsc-dir" CACHE STRING "Directory containing PETSc inst
 set (slepc_dir         "slepc-dir" CACHE STRING "Directory containing PETSc installation")
 set (petsc_arch         "petsc-arch" CACHE STRING "Directory containing PETSc installation")
 set (CMAKE_Fortran_COMPILER "fortran-compiler" CACHE STRING "Fortran compiler")
+set (CMAKE_CXX_COMPILER "cxx-compiler" CACHE STRING "CXX compiler")
 
 
 include_directories (${PROJECT_SOURCE_DIR}/../src
